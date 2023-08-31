@@ -19,4 +19,4 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn publish
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.YARN_TOKEN }}
+        NPM_AUTH_TOKEN: ${{ secrets.YARN_TOKEN }}
