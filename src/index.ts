@@ -8,7 +8,7 @@ import {
   window,
 } from 'coc.nvim';
 import Process from 'node:child_process';
-import { promisify } from 'node:util';
+import { promisify, TextDecoder, TextEncoder } from 'node:util';
 
 const exec = promisify(Process.exec);
 
@@ -29,29 +29,29 @@ export async function activate(context: ExtensionContext): Promise<void> {
 }
 
 async function getCompletionItems(opt: CompleteOption, _token: CancellationToken): Promise<CompleteResult> {
-  const line = opt.line.substring(0, opt.col);
+  let encoder = new TextEncoder();
+  let whole = encoder.encode(opt.line);
+  const prefix = whole.slice(0, opt.colnr - 1);
+  const line = new TextDecoder().decode(prefix);
+  // console.error(`line: ${line}`);
+  // console.error(`col: ${opt.col}`);
+  // console.error(`colnr: ${opt.colnr}`);
   const closingBracketIndex = line.lastIndexOf('](');
+  // console.error(`closingBracketIndex: ${closingBracketIndex}`);
   if (closingBracketIndex < 0) {
     return {
       items: [],
     };
   }
   let title = line.substring(closingBracketIndex + 2);
-
-  if (title == "") {
-    const openingBracketIndex = line.substring(0, closingBracketIndex).lastIndexOf('[');
-    if (openingBracketIndex < 0) {
-      return {
-        items: [],
-      };
-    }
-    title = line.substring(openingBracketIndex + 1, closingBracketIndex);
-  }
+  // console.error(`title: ${title}`);
 
   const { stdout } = await exec(`forester complete --title=${title} trees`);
 
+  let i = encoder.encode(line.substring(0, closingBracketIndex)).byteLength;
+
   return {
-    startcol: closingBracketIndex + 2,
+    startcol: i + 2,
     items: stdout.split("\n").map((s) => {
       const j = s.indexOf(",");
       return {
