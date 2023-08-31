@@ -6,7 +6,7 @@ https://github.com/neoclide/coc.nvim
 
 ## Install
 
-`:CocInstall https://github.com/elpinal/coc-forester`
+`:CocInstall coc-forester`
 
 ---
 
