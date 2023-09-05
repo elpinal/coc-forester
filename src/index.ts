@@ -6,9 +6,11 @@ import {
   SourceConfig,
   sources,
   window,
+  workspace,
 } from 'coc.nvim';
 import Process from 'node:child_process';
 import { promisify, TextDecoder, TextEncoder } from 'node:util';
+import Path from 'path';
 
 const exec = promisify(Process.exec);
 
@@ -26,6 +28,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     sources.createSource(srcConf),
   );
+}
+
+async function getcwd(): Promise<string> {
+  let vim = workspace.nvim;
+  let tabpage = await vim.tabpage;
+  let tabpagenr = await tabpage.number;
+  return vim.call('getcwd', [-1, tabpagenr]);
 }
 
 async function getCompletionItems(opt: CompleteOption, _token: CancellationToken): Promise<CompleteResult> {
@@ -46,7 +55,10 @@ async function getCompletionItems(opt: CompleteOption, _token: CancellationToken
   let title = line.substring(closingBracketIndex + 2);
   // console.error(`title: ${title}`);
 
-  const { stdout } = await exec(`forester complete --title=${title} trees`);
+  let cwd = await getcwd();
+  let inputDir = Path.join(cwd, 'trees');
+
+  const { stdout } = await exec(`forester complete --title=${title} ${inputDir}`);
 
   let i = encoder.encode(line.substring(0, closingBracketIndex)).byteLength;
 
