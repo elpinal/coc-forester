@@ -9,10 +9,8 @@ import {
   workspace,
 } from 'coc.nvim';
 import Process from 'node:child_process';
-import { promisify, TextDecoder, TextEncoder } from 'node:util';
+import { TextDecoder, TextEncoder } from 'node:util';
 import Path from 'path';
-
-const exec = promisify(Process.exec);
 
 export async function activate(context: ExtensionContext): Promise<void> {
   window.showMessage(`coc-forester works!`);
@@ -58,13 +56,13 @@ async function getCompletionItems(opt: CompleteOption, _token: CancellationToken
   let cwd = await getcwd();
   let inputDir = Path.join(cwd, 'trees');
 
-  const { stdout } = await exec(`forester complete --title=${title} ${inputDir}`);
+  const { stdout } = Process.spawnSync(`forester`, [`complete`, `--title`, title, inputDir]);
 
   let i = encoder.encode(line.substring(0, closingBracketIndex)).byteLength;
 
   return {
     startcol: i + 2,
-    items: stdout.split("\n").map((s) => {
+    items: stdout.toString().split("\n").map((s) => {
       const j = s.indexOf(",");
       return {
         word: s.substring(0, j),
